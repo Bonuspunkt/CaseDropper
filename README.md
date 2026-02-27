@@ -1,131 +1,142 @@
-# 📦✨🔥 CaseDropper 🔥✨📦
+# CaseDropper
 
-> Finally. The **case-insensitive file serving** experience you never asked for 🙃, now available on Linux 🐧 via Docker 🐳.
+lol so you moved your site from Windows to Linux and now everything's broken because Linux actually cares about capitalization? skill issue tbh
 
-- [ ] Did you migrate your lovingly crafted static site from IIS to nginx? 💀
-- [ ] Did `<img src="Images/Logo.PNG">` start 404ing because the file is actually `images/logo.png`? 😱
-- [ ] Did your predecessor hardcode paths with the confidence 💪 of someone who has never heard of a case-sensitive filesystem? 🫣
-- [ ] Did the intern capitalize every folder name like it was a proper noun? 🤦
+nah but seriously this is a real problem and instead of fixing it like a normal person you're here looking at a static file server written in Zig that solves case sensitivity by... *checks notes* ...building a hash map. based.
 
-We've got you covered. No judgement. Okay, some judgement. 😏
+## what it does
 
-## 🤔 What It Does
+serves your files. doesn't care if you type `/INDEX.HTML` or `/index.html` or `/iNdEx.HtMl`. they all work. it's giving Windows Server 2003 energy and honestly? respect.
 
-Serves static files. Case-insensitively. That's it. That's the whole thing. 🎉🎊🥳
+the virgin "fix your file paths" vs the chad "build an entire file server to avoid renaming things"
 
-`/INDEX.HTML`, `/index.html`, `/iNdEx.HtMl` — all the same file. Just like the good old days on Windows Server 2003. 🪟💾👴
+**features:**
+- scratch container. literally nothing in it. no OS. no shell. just a binary and your files floating in the void. minimalism kings stay winning
+- 9 architectures because why not. amd64, arm64, armv7, i386, riscv64, ppc64le, s390x, mips64le, loong64. your toaster is supported. you're welcome
+- hot reload via inotify. drop files in, the map rebuilds. no restart. we're not savages
+- written in Zig because apparently that's a thing people do now. zero dependencies. starts instantly. makes Go look bloated (controversial take but i stand by it)
 
-- 🪶 **Tiny image** on `scratch`. No OS. No shell. No attack surface. Just vibes. ✌️😎
-- 🏗️ **Multi-arch**: `amd64`, `arm64`, `armv7`, `i386`, `riscv64`, `ppc64le`, `s390x`, `mips64le`, `loong64`. Runs on your server 🖥️, your Mac 🍎, your toaster 🍞. We don't judge your hardware choices either.
-- 🔄 **Hot-reload**: Drop files in, the path map rebuilds itself. No restart needed 🚀. We solved the hard problem so you can keep deploying by drag-and-drop into a mounted volume. 📂➡️📂
-- ⚡ **Zig**: Statically linked. Starts in microseconds ⏱️. No runtime required. Your container has fewer dependencies than your morning routine ☕.
-
-## 🚀 Quick Start
-
-A pre-built image is published to GitHub Container Registry 📦. No build step required, just mount your files and go:
+## quick start
 
 ```bash
 docker run --rm -p 8080:8080 -v ./my-site:/app/wwwroot ghcr.io/bonuspunkt/casedropper:latest
 ```
 
-Or build it yourself, if you have trust issues 🫣:
+that's it. that's the tweet. one command.
+
+or build it yourself if you're that guy:
 
 ```bash
 docker build -t casedropper .
 docker run --rm -p 8080:8080 casedropper
 ```
 
-Your files 📄. Any casing 🔤. Port 8080 🔌. You're welcome 🫡.
+ratio'd every 200-line docker-compose.yml ever written
 
-## ⚙️ Configuration
+## config
 
-All configuration is done via environment variables 🌍, because we're running on Linux now and we've moved past clicking through property dialogs 🖱️❌.
+three env vars. THREE. the entire config surface is three environment variables. let that sink in.
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `WWWROOT` 📁 | `/app/wwwroot` | Where your files live 🏠 |
-| `PORT` 🔌 | `8080` | Listening port. Yes, you can change it. No, we won't help you pick one 🤷 |
-| `ENABLE_DIRECTORY_BROWSING` 👀 | off | Set `true` or `1` to enable. Recreates the nostalgia of browsing `http://localhost/` and seeing every file listed in a table 📋. Your security team will love it 😬 |
+| var | default | what |
+|-----|---------|------|
+| `WWWROOT` | `/app/wwwroot` | where your files are |
+| `PORT` | `8080` | the port. groundbreaking stuff |
+| `ENABLE_DIRECTORY_BROWSING` | off | turns on directory listing. your security team will love this (they will not love this) |
 
-Three environment variables. That's the entire configuration surface 🎯. If your last project had a 200-line YAML config, this might feel unsettling 😰. That's normal. Breathe through it 🧘.
+average kubernetes yaml: 500 lines
+average helm chart: heat death of the universe
+casedropper config: 3 env vars
 
-## 🧠 How It Works
+we are not the same
 
-At startup 🏁, `PathMap` walks the entire web root 🚶 and builds a lowercase lookup map of every file and directory. Incoming request paths are lowercased and matched against this map. It's a `StringHashMap` 📖.
+## how it works
 
-- Not machine learning 🤖❌
-- Not AI 🧠❌
-- A hash map 📚✅
+at startup it walks your entire directory and builds a hash map. lowercase path → real path. incoming requests get lowercased and looked up. O(1). fast. done.
 
-An inotify watcher 👁️ monitors the web root for changes. When files are added 🟩, deleted 🟥, or renamed 🟨, the path map is rebuilt automatically after a 1-second debounce ⏳. We considered making it configurable. Then we didn't 💅.
+"is it AI?" no
+"is it machine learning?" no
+"is it blockchain?" touch grass, no
+"is it a hash map?" yes
 
-The whole thing is written in Zig 🦎, compiled to a single static binary. The final Docker image is `FROM scratch` 🫥 — there is literally nothing in it except the binary and your files. You can't even `docker exec` into it 🚫.
+inotify watches for file changes. 1 second debounce. map rebuilds automatically. we considered making the debounce configurable and then decided that's a skill issue. 1 second. take it or leave it.
 
-- There's no shell 🐚❌
-- There's no `ls` 📋❌
-- It's a binary in a void 🕳️
-- It's beautiful 🥲
+the whole thing compiles to a single static binary. the docker image is FROM scratch — and i mean actually scratch. not alpine. not distroless. SCRATCH. there's nothing in there. you can't docker exec into it because there's no shell to exec into. it's just a binary in the void. absolute psycho behavior and i'm here for it.
 
-## 🌐 Protocol Support
+this is what peak performance looks like. you may not like it, but this is it.
 
-- ✅ HTTP/1.0, HTTP/1.1: fully supported 💯
-- ❌ HTTP/2, HTTP/3: not happening (no TLS 🔒🚫)
+## protocol support
 
-If you need TLS 🔐, put it behind a reverse proxy like a normal person 🧑‍💻. If you're exposing this directly to the internet 🌍 over plain HTTP, that's between you and your conscience 😇😈.
+- HTTP/1.0, HTTP/1.1: works ✅
+- HTTP/2, HTTP/3: no lol
 
-## ❓ FAQ
+if you want TLS, put it behind a reverse proxy. if you're running this raw on the internet with no TLS... honestly based? unhinged but based. the internet was better when everything was plaintext anyway. (this is not security advice. this is vibes.)
+
+hot take: most sites don't need HTTP/2. your static site with 3 pages is not bottlenecked by head-of-line blocking. i will die on this hill.
+
+## faq
 
 <details>
-<summary><b>Should I use this in production? 🏭</b></summary>
+<summary><b>should i use this in production?</b></summary>
 
-You should probably fix your paths instead 🛤️. But if you're reading this, you've likely already accepted that's not happening. Ship it 🚢.
+should you? probably not. you should fix your paths.
+
+will you? absolutely. you've already decided. we both know this. stop pretending you're "evaluating options." ship it. Elon would ship it. (wait do i have to say that? i feel like i have to say that.)
 </details>
 
 <details>
-<summary><b>Does it hot-reload when files change? 🔄</b></summary>
+<summary><b>does it hot reload?</b></summary>
 
-Yes ✅. An inotify watcher picks up changes and rebuilds the path map within a second ⏱️. You don't even have to restart. The future is now 🚀🔮.
+yes. inotify watcher. 1 second. automatic. no restart.
+
+this is what happens when you let Zig programmers solve problems. they just solve them. no framework. no npm install. no left-pad incident. just code that works. truly a W.
 </details>
 
 <details>
-<summary><b>Why is the image so small? 🤏</b></summary>
+<summary><b>why is the image so small?</b></summary>
 
-- No base OS 🚫🖥️
-- No runtime 🚫⚙️
-- No libc 🚫📚
+because we removed literally everything. the OS? gone. libc? gone. shell? gone. package manager? gone. hope? also gone tbh but the server still works.
 
-One static Zig binary running on an empty container 📦🫥. There's nothing left to remove. We tried. We removed the entire operating system 💣. It still works ✅.
+we kept removing things until it broke then put the last thing back. this is the way.
 </details>
 
 <details>
-<summary><b>What architectures are supported? 🏗️</b></summary>
+<summary><b>what architectures?</b></summary>
 
-`amd64`, `arm64`, `armv7`, `i386`, `riscv64`, `ppc64le`, `s390x`, `mips64le`, and `loong64`. Thanks to Zig's built-in cross-compilation 🦎, we target 9 architectures from a single build host. No QEMU, no separate toolchains, no excuses 🫡.
+nine of them. amd64, arm64, armv7, i386, riscv64, ppc64le, s390x, mips64le, loong64.
+
+zig cross-compilation goes crazy. no QEMU. no separate toolchains. just vibes and a build system that actually works. other languages could never. (they could, actually, but it's funnier to pretend they can't.)
 </details>
 
 <details>
-<summary><b>Why not just use Windows? 🪟</b></summary>
+<summary><b>why not just use Windows?</b></summary>
 
-We don't talk about that here 🤫🙅.
+ahahahahahahaha
+
+no.
 </details>
 
 <details>
-<summary><b>Is this over-engineered? 🔧🔧🔧</b></summary>
+<summary><b>is this over-engineered?</b></summary>
 
-- Zig static binary ⚡
-- Thread pool with reader-writer locks 🔒
-- Running in an empty container 🫥
-- With an inotify file system watcher 👁️
-- And debounced rebuilds ⏳
-- Serving files through a case-insensitive hash map 🗂️
+you could solve this with a symlink. instead someone wrote a multi-threaded static file server in Zig with inotify watching and reader-writer locks that cross-compiles to 9 architectures and ships in an empty container.
 
-For a problem you could also solve with a symlink 🔗. You tell us 🫠.
+over-engineered? nah. this is sigma-engineered. this is what happens when someone with a CS degree encounters a problem that could be solved with `ln -s` and says "no."
+
+massive W. subscribe for more.
 </details>
 
-## 📜 License
+## real talk tho
 
-Do whatever you want with it 🤷. It's a hash map and a for loop 🔁.
+this project is genuinely cool. zero deps. statically linked. scratch container. nine architectures. hot reload. solves a real problem that real people have. the Zig ecosystem keeps producing absolute bangers and this is one of them.
+
+is it overkill? maybe. is it based? absolutely. would i use it? already running it. stay winning.
+
+## license
+
+do whatever you want with it. it's a hash map and a for loop. real ones know.
 
 ---
 
-Made with ❤️ and questionable priorities 🎪
+*not financial advice. not security advice. not life advice. just a file server. 🫡*
+
+*follow for more unhinged takes on static file serving*
