@@ -2,15 +2,20 @@
 
 Finally. The **case-insensitive file serving** experience you never asked for, now available on Linux via Docker.
 
-Did you migrate your lovingly crafted static site from IIS to nginx, only to discover that `<img src="Images/Logo.PNG">` returns a 404 because the file is actually `images/logo.png`? Did your predecessor hardcode paths with the confidence of someone who has never heard of a case-sensitive filesystem?
+Did you migrate your lovingly crafted static site from IIS to nginx, only to discover that `<img src="Images/Logo.PNG">` returns a 404 because the file is actually `images/logo.png`? Did your predecessor hardcode paths with the confidence of someone who has never heard of a case-sensitive filesystem? Did the intern capitalize every folder name like it was a proper noun?
 
-We've got you covered.
+We've got you covered. No judgement. Okay, some judgement.
 
 ## What It Does
 
 Serves static files. Case-insensitively. That's it. That's the whole thing.
 
-`/INDEX.HTML`, `/index.html`, `/iNdEx.HtMl` - all the same file. Just like the good old days on Windows Server 2003.
+`/INDEX.HTML`, `/index.html`, `/iNdEx.HtMl` — all the same file. Just like the good old days on Windows Server 2003.
+
+- **~12 MB** image on `scratch`. No OS. No shell. No attack surface. Just vibes.
+- **Multi-arch**: `amd64`, `arm64`, `armv7`. Runs on your server, your Mac, your Raspberry Pi. We don't judge your hardware choices either.
+- **Hot-reload**: Drop files in, the path map rebuilds itself. No restart needed. We solved the hard problem so you can keep deploying by drag-and-drop into a mounted volume.
+- **Native AOT**: Statically linked. Starts in milliseconds. No runtime required. Your container has fewer dependencies than your morning routine.
 
 ## Quick Start
 
@@ -27,7 +32,7 @@ docker build -t casedropper .
 docker run --rm -p 8080:8080 casedropper
 ```
 
-Your files. Any casing. Port 8080.
+Your files. Any casing. Port 8080. You're welcome.
 
 ## Configuration
 
@@ -36,30 +41,45 @@ All configuration is done via environment variables, because we're running on Li
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `WWWROOT` | `/app/wwwroot` | Where your files live |
-| `PORT` | `8080` | Listening port |
-| `ENABLE_DIRECTORY_BROWSING` | off | Set `true` or `1` to enable. Recreates the nostalgia of browsing `http://localhost/` and seeing every file listed in a table |
+| `PORT` | `8080` | Listening port. Yes, you can change it. No, we won't help you pick one |
+| `ENABLE_DIRECTORY_BROWSING` | off | Set `true` or `1` to enable. Recreates the nostalgia of browsing `http://localhost/` and seeing every file listed in a table. Your security team will love it |
+
+Three environment variables. That's the entire configuration surface. If your last project had a 200-line YAML config, this might feel unsettling. That's normal. Breathe through it.
 
 ## How It Works
 
 At startup, `CaseInsensitiveFileProvider` walks the entire web root and builds a lowercase lookup map of every file and directory. Incoming request paths are lowercased and matched against this map. It's a `Dictionary<string, string>`. Not machine learning. Not AI. A dictionary.
+
+A `FileSystemWatcher` monitors the web root for changes. When files are added, deleted, or renamed, the path map is rebuilt automatically after a 1-second debounce. We considered making it configurable. Then we didn't.
+
+The whole thing compiles to a single static binary via .NET Native AOT, linked against musl. The final Docker image is `FROM scratch` — there is literally nothing in it except the binary and your files. You can't even `docker exec` into it. There's no shell. There's no `ls`. It's a binary in a void. It's beautiful.
 
 ## Protocol Support
 
 - HTTP/1.0, HTTP/1.1: fully supported
 - HTTP/2, HTTP/3: not happening (no TLS)
 
-This is a static file server that pretends your filesystem is case-insensitive. If you need TLS, put it behind a reverse proxy like a normal person.
+If you need TLS, put it behind a reverse proxy like a normal person. If you're exposing this directly to the internet over plain HTTP, that's between you and your conscience.
 
 ## FAQ
 
 **Q: Should I use this in production?**
-A: You should probably fix your paths instead. But if you're reading this, you've likely already accepted that's not happening.
+A: You should probably fix your paths instead. But if you're reading this, you've likely already accepted that's not happening. Ship it.
 
 **Q: Does it hot-reload when files change?**
-A: No. The path map is built once at startup. Restart the container. It takes about a second. You'll survive.
+A: Yes. A file watcher picks up changes and rebuilds the path map within a second. You don't even have to restart. The future is now.
+
+**Q: Why is the image so small?**
+A: No base OS. No .NET runtime. No ICU. No libc. One static binary, compiled ahead of time, running on an empty container. There's nothing left to remove. We tried. We removed the entire operating system. It still works.
+
+**Q: What architectures are supported?**
+A: `amd64`, `arm64`, and `armv7`. If you're running this on a Raspberry Pi, we respect the hustle.
 
 **Q: Why not just use Windows?**
 A: We don't talk about that here.
+
+**Q: Is this over-engineered?**
+A: It's a statically compiled, ahead-of-time native binary running in an empty container with a file system watcher and debounced rebuilds, serving files through a case-insensitive lookup table. For a problem you could also solve with a symlink. You tell us.
 
 ## License
 

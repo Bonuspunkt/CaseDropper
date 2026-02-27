@@ -20,7 +20,7 @@ if (!Directory.Exists(resolvedRoot))
     return 1;
 }
 
-var builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateSlimBuilder(args);
 
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
@@ -53,6 +53,7 @@ Console.WriteLine($"Serving files from: {resolvedRoot}");
 Console.WriteLine($"Listening on:       http://0.0.0.0:{port}");
 Console.WriteLine($"Protocols:          HTTP/1.0, HTTP/1.1");
 Console.WriteLine($"Directory browsing: {(dirBrowsingEnabled ? "enabled" : "disabled")}");
+Console.WriteLine($"File watching:      enabled (auto-rebuild on changes)");
 
 app.Run();
 
