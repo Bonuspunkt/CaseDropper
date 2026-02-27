@@ -1,0 +1,10 @@
+.{
+    .name = .casedropper,
+    .version = "0.3.0",
+    .fingerprint = 0x768f1ccaade3b9a5,
+    .paths = .{
+        "src",
+        "build.zig",
+        "build.zig.zon",
+    },
+}

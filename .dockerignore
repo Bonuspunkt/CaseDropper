@@ -1,7 +1,7 @@
-bin/
-obj/
+zig-out/
+.zig-cache/
 .git/
-.vs/
 .claude/
 .devcontainer/
+.github/
 *.md
