@@ -22,10 +22,17 @@ LUA_SCRIPT=scripts/smallcaps.lua WWWROOT=wwwroot ./zig-out/bin/casedropper
 
 | Script | Effect | Before → After |
 |--------|--------|----------------|
-| `rusify.lua` 🇷🇺 | Latin → Cyrillic homoglyphs | `index.html` → `indех.html` |
+| `rusify.lua` 🇷🇺 | Full Latin → Cyrillic/Ukrainian | `index.html` → `їиdёx.html` |
 | `smallcaps.lua` 🔡 | lowercase → small capitals | `index.html` → `ɪɴᴅᴇx.html` |
 
-The characters look identical but aren't. `e` vs `е`. One is ASCII, one is Cyrillic. Your browser won't know. Your users won't know. You'll know. And that's what matters.
+`rusify.lua` maps 25 of 52 Latin letters to Cyrillic/Ukrainian equivalents:
+
+```
+ABCDEFGHIJKLMNOPQRSTUVWXYZ → ДBCDЄFБHЇJКLMИОPQЯ₴TЦVШXЏZ
+abcdefghijklmnopqrstuvwxyz → aЬcdёfgнїjкlмиоpqяsтцvшxуz
+```
+
+Some look identical (`o` → `о`), some are wildly different (`A` → `Д`). All of them will confuse your users 🫠.
 
 ### 🔧 Write Your Own
 
@@ -60,7 +67,7 @@ Drop it in `scripts/`, set `LUA_SCRIPT`, restart. The path map rebuilds with you
 
 - feat: embed Lua 5.4.7 scripting engine for URL rewriting
 - feat: add `LUA_SCRIPT` environment variable
-- feat: add `rusify.lua` script (Latin → Cyrillic homoglyphs)
+- feat: add `rusify.lua` script (full Latin → Cyrillic/Ukrainian, 25 letter mappings)
 - feat: add `smallcaps.lua` script (lowercase → Unicode small capitals)
 - feat: add URL percent-decoding in PathMap for Unicode URL support
 - build: link musl libc (required by Lua)

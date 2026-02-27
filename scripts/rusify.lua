@@ -1,28 +1,35 @@
--- rusify.lua: Latin → Cyrillic homoglyph URL rewriting
--- Maps visually similar Latin characters to their Cyrillic equivalents
--- https://fsymbols.com/generators/rusify/
+-- rusify.lua: Latin → Cyrillic/Ukrainian URL rewriting
+-- Full character substitution as per https://fsymbols.com/generators/rusify/
 
 local lookup = {
-    ["a"] = "\xD0\xB0",  -- а
-    ["c"] = "\xD1\x81",  -- с
-    ["e"] = "\xD0\xB5",  -- е
-    ["o"] = "\xD0\xBE",  -- о
-    ["p"] = "\xD1\x80",  -- р
-    ["x"] = "\xD1\x85",  -- х
-    ["y"] = "\xD1\x83",  -- у
-    ["k"] = "\xD0\xBA",  -- к
-    ["A"] = "\xD0\x90",  -- А
-    ["B"] = "\xD0\x92",  -- В
-    ["C"] = "\xD0\xA1",  -- С
-    ["E"] = "\xD0\x95",  -- Е
-    ["H"] = "\xD0\x9D",  -- Н
-    ["K"] = "\xD0\x9A",  -- К
-    ["M"] = "\xD0\x9C",  -- М
-    ["O"] = "\xD0\x9E",  -- О
-    ["P"] = "\xD0\xA0",  -- Р
-    ["T"] = "\xD0\xA2",  -- Т
-    ["X"] = "\xD0\xA5",  -- Х
-    ["Y"] = "\xD0\xA3",  -- У
+    -- Uppercase
+    ["A"] = "\xD0\x94",  -- Д U+0414
+    ["E"] = "\xD0\x84",  -- Є U+0404
+    ["G"] = "\xD0\x91",  -- Б U+0411
+    ["I"] = "\xD0\x87",  -- Ї U+0407
+    ["K"] = "\xD0\x9A",  -- К U+041A
+    ["N"] = "\xD0\x98",  -- И U+0418
+    ["O"] = "\xD0\x9E",  -- О U+041E
+    ["R"] = "\xD0\xAF",  -- Я U+042F
+    ["S"] = "\xE2\x82\xB4",  -- ₴ U+20B4
+    ["U"] = "\xD0\xA6",  -- Ц U+0426
+    ["W"] = "\xD0\xA8",  -- Ш U+0428
+    ["Y"] = "\xD0\x8F",  -- Џ U+040F
+
+    -- Lowercase
+    ["b"] = "\xD0\xAC",  -- Ь U+042C
+    ["e"] = "\xD1\x91",  -- ё U+0451
+    ["h"] = "\xD0\xBD",  -- н U+043D
+    ["i"] = "\xD1\x97",  -- ї U+0457
+    ["k"] = "\xD0\xBA",  -- к U+043A
+    ["m"] = "\xD0\xBC",  -- м U+043C
+    ["n"] = "\xD0\xB8",  -- и U+0438
+    ["o"] = "\xD0\xBE",  -- о U+043E
+    ["r"] = "\xD1\x8F",  -- я U+044F
+    ["t"] = "\xD1\x82",  -- т U+0442
+    ["u"] = "\xD1\x86",  -- ц U+0446
+    ["w"] = "\xD1\x88",  -- ш U+0448
+    ["y"] = "\xD1\x83",  -- у U+0443
 }
 
 -- Rewrite only the filename stem, preserve extension and path separators

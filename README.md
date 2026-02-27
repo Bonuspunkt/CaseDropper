@@ -19,7 +19,7 @@ Serves static files. Case-insensitively. That's it. That's the whole thing. 🎉
 - 🏗️ **Multi-arch**: `amd64`, `arm64`, `armv7`, `i386`, `riscv64`, `ppc64le`, `s390x`, `mips64le`, `loong64`. Runs on your server 🖥️, your Mac 🍎, your toaster 🍞. We don't judge your hardware choices either.
 - 🔄 **Hot-reload**: Drop files in, the path map rebuilds itself. No restart needed 🚀. We solved the hard problem so you can keep deploying by drag-and-drop into a mounted volume. 📂➡️📂
 - ⚡ **Zig**: Statically linked. Starts in microseconds ⏱️. No runtime required. Your container has fewer dependencies than your morning routine ☕.
-- 🌙 **Lua scripting**: Embed a Lua 5.4 engine 🦎🤝🌙 to rewrite URLs at index time. Ship with `rusify.lua` 🇷🇺 (Latin → Cyrillic homoglyphs) and `smallcaps.lua` 🔡 (ʟᴏᴡᴇʀᴄᴀꜱᴇ → sᴍᴀʟʟ ᴄᴀᴘs). Your users will think you've been hacked. You haven't. Probably 🤷.
+- 🌙 **Lua scripting**: Embedded Lua 5.4 engine 🦎🤝🌙 rewrites URLs at index time. Ships with `rusify.lua` 🇷🇺 (`ABCDEFGHIJKLMNOPQRSTUVWXYZ` → `ДBCDЄFБHЇJКLMИОPQЯ₴TЦVШXЏZ`) and `smallcaps.lua` 🔡 (`index` → `ɪɴᴅᴇx`). Your users will think you've been hacked. You haven't. Probably 🤷.
 
 ## 🚀 Quick Start
 
@@ -61,16 +61,30 @@ docker run --rm -p 8080:8080 \
   -e LUA_SCRIPT=/app/scripts/rusify.lua \
   ghcr.io/bonuspunkt/casedropper:latest
 
-# /index.html    → 200 ✅
-# /indех.html    → 200 ✅  (those are Cyrillic е and х. You can't tell. That's the point 👀)
+# /index.html     → 200 ✅
+# /їиdёx.html    → 200 ✅  (every letter mapped to Cyrillic. You can barely tell 👀)
 ```
 
 Ships with two scripts 📜📜:
 
 | Script | What it does | Example |
 |--------|-------------|---------|
-| `rusify.lua` 🇷🇺 | Latin → Cyrillic homoglyphs | `index` → `indех` (look the same, aren't the same 🫣) |
+| `rusify.lua` 🇷🇺 | Full Latin → Cyrillic/Ukrainian | `index` → `їиdёx` (25 letters mapped 🫣) |
 | `smallcaps.lua` 🔡 | lowercase → sᴍᴀʟʟ ᴄᴀᴘs | `index` → `ɪɴᴅᴇx` (fancy ✨) |
+
+<details>
+<summary><b>rusify.lua full mapping table 🇷🇺🔤</b></summary>
+
+```
+ABCDEFGHIJKLMNOPQRSTUVWXYZ
+ДBCDЄFБHЇJКLMИОPQЯ₴TЦVШXЏZ
+
+abcdefghijklmnopqrstuvwxyz
+aЬcdёfgнїjкlмиоpqяsтцvшxуz
+```
+
+25 of 52 letters get swapped. The rest pass through unchanged. File extensions are preserved 📎.
+</details>
 
 Write your own 📝! The contract is simple:
 
