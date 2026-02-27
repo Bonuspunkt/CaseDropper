@@ -3,6 +3,7 @@ const config = @import("config.zig");
 const path_map = @import("path_map.zig");
 const handler = @import("handler.zig");
 const watcher = @import("watcher.zig");
+const lua_engine = @import("lua_engine.zig");
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
@@ -17,12 +18,23 @@ pub fn main() !void {
         switch (err) {
             error.WwwrootNotFound => stderr.print("Error: WWWROOT directory not found\n", .{}) catch {},
             error.InvalidPort => stderr.print("Error: PORT must be a number between 1 and 65535\n", .{}) catch {},
+            error.LuaScriptNotFound => stderr.print("Error: LUA_SCRIPT file not found\n", .{}) catch {},
         }
         std.process.exit(1);
     };
 
+    // Initialize Lua engine (optional)
+    var lua: ?lua_engine.LuaEngine = if (cfg.lua_script) |script|
+        lua_engine.LuaEngine.init(script) catch |err| {
+            stderr.print("Error: Failed to initialize Lua engine: {}\n", .{err}) catch {};
+            std.process.exit(1);
+        }
+    else
+        null;
+    defer if (lua != null) lua.?.deinit();
+
     // Build initial path map
-    var pm = path_map.PathMap.init(allocator, cfg.wwwroot) catch |err| {
+    var pm = path_map.PathMap.init(allocator, cfg.wwwroot, if (lua != null) &lua.? else null) catch |err| {
         stderr.print("Error: Failed to build path map: {}\n", .{err}) catch {};
         std.process.exit(1);
     };
@@ -53,6 +65,7 @@ pub fn main() !void {
     stdout.print("Protocols:          HTTP/1.0, HTTP/1.1\n", .{}) catch {};
     stdout.print("Directory browsing: {s}\n", .{if (cfg.dir_browsing) "enabled" else "disabled"}) catch {};
     stdout.print("File watching:      enabled\n", .{}) catch {};
+    stdout.print("Lua URL rewriting:  {s}\n", .{if (cfg.lua_script) |s| s else "disabled"}) catch {};
 
     // Accept loop
     while (true) {

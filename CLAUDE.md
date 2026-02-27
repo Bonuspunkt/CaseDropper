@@ -9,9 +9,12 @@
 zig build -Doptimize=ReleaseSafe
 WWWROOT=wwwroot ./zig-out/bin/casedropper
 
+# With Lua URL rewriting
+LUA_SCRIPT=scripts/rusify.lua WWWROOT=wwwroot ./zig-out/bin/casedropper
+
 # Docker
 docker build -t casedropper .
-docker run --rm -p 8080:8080 casedropper
+docker run --rm -p 8080:8080 -e LUA_SCRIPT=/app/scripts/rusify.lua casedropper
 ```
 
 ## Environment Variables
@@ -21,6 +24,7 @@ docker run --rm -p 8080:8080 casedropper
 | `WWWROOT` | `/app/wwwroot` (in container) | Static files directory |
 | `PORT` | `8080` | Listening port |
 | `ENABLE_DIRECTORY_BROWSING` | off | Set `true` or `1` to enable |
+| `LUA_SCRIPT` | off | Path to Lua script with `rewrite(path)` function |
 
 ## Protocol Support
 
@@ -29,7 +33,7 @@ docker run --rm -p 8080:8080 casedropper
 
 ## Key Decisions
 
-- Written in Zig 0.15.2, zero external dependencies
+- Written in Zig 0.15.2, Lua 5.4.7 vendored as C source in `deps/lua/`
 - Case-insensitive file serving via `PathMap` (indexes all paths at startup using `std.fs.Dir.walk`)
 - Thread-safe path map with `std.Thread.RwLock` (shared reads, exclusive write during rebuild)
 - Multi-threaded HTTP serving via `std.Thread.Pool` (defaults to CPU count)
@@ -38,4 +42,7 @@ docker run --rm -p 8080:8080 casedropper
 - MIME types via compile-time `std.StaticStringMap`
 - Cross-compilation via `zig build -Dtarget=...` — no external toolchain needed
 - Dockerfile uses `--platform=$BUILDPLATFORM` + Zig cross-compilation (no QEMU for build)
-- Scratch container, statically linked binary
+- Scratch container, statically linked binary (musl libc for Lua)
+- Lua engine runs at index build time only — zero per-request overhead
+- URL percent-decoding in `PathMap.normalizePath` for Unicode URL support
+- Lua scripts preserve file extensions, only transform filename stems

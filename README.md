@@ -19,6 +19,7 @@ Serves static files. Case-insensitively. That's it. That's the whole thing. 🎉
 - 🏗️ **Multi-arch**: `amd64`, `arm64`, `armv7`, `i386`, `riscv64`, `ppc64le`, `s390x`, `mips64le`, `loong64`. Runs on your server 🖥️, your Mac 🍎, your toaster 🍞. We don't judge your hardware choices either.
 - 🔄 **Hot-reload**: Drop files in, the path map rebuilds itself. No restart needed 🚀. We solved the hard problem so you can keep deploying by drag-and-drop into a mounted volume. 📂➡️📂
 - ⚡ **Zig**: Statically linked. Starts in microseconds ⏱️. No runtime required. Your container has fewer dependencies than your morning routine ☕.
+- 🌙 **Lua scripting**: Embed a Lua 5.4 engine 🦎🤝🌙 to rewrite URLs at index time. Ship with `rusify.lua` 🇷🇺 (Latin → Cyrillic homoglyphs) and `smallcaps.lua` 🔡 (ʟᴏᴡᴇʀᴄᴀꜱᴇ → sᴍᴀʟʟ ᴄᴀᴘs). Your users will think you've been hacked. You haven't. Probably 🤷.
 
 ## 🚀 Quick Start
 
@@ -46,8 +47,41 @@ All configuration is done via environment variables 🌍, because we're running 
 | `WWWROOT` 📁 | `/app/wwwroot` | Where your files live 🏠 |
 | `PORT` 🔌 | `8080` | Listening port. Yes, you can change it. No, we won't help you pick one 🤷 |
 | `ENABLE_DIRECTORY_BROWSING` 👀 | off | Set `true` or `1` to enable. Recreates the nostalgia of browsing `http://localhost/` and seeing every file listed in a table 📋. Your security team will love it 😬 |
+| `LUA_SCRIPT` 🌙 | off | Path to a Lua script defining a `rewrite(path)` function 🔄. URLs are rewritten at index time, not per-request. Zero overhead. Infinite chaos potential 🔥 |
 
-Three environment variables. That's the entire configuration surface 🎯. If your last project had a 200-line YAML config, this might feel unsettling 😰. That's normal. Breathe through it 🧘.
+Four environment variables. That's the entire configuration surface 🎯. If your last project had a 200-line YAML config, this might feel unsettling 😰. That's normal. Breathe through it 🧘.
+
+## 🌙 Lua URL Rewriting
+
+Because case-insensitive serving wasn't unhinged enough 🤪, we embedded an entire Lua 5.4 scripting engine. Write a Lua script with a `rewrite(path)` function and CaseDropper will generate URL aliases at index time 📇. Both the original path and the rewritten alias resolve to the same file. Zero per-request overhead 🏎️💨.
+
+```bash
+# Serve files with Cyrillic homoglyph URLs 🇷🇺
+docker run --rm -p 8080:8080 \
+  -e LUA_SCRIPT=/app/scripts/rusify.lua \
+  ghcr.io/bonuspunkt/casedropper:latest
+
+# /index.html    → 200 ✅
+# /indех.html    → 200 ✅  (those are Cyrillic е and х. You can't tell. That's the point 👀)
+```
+
+Ships with two scripts 📜📜:
+
+| Script | What it does | Example |
+|--------|-------------|---------|
+| `rusify.lua` 🇷🇺 | Latin → Cyrillic homoglyphs | `index` → `indех` (look the same, aren't the same 🫣) |
+| `smallcaps.lua` 🔡 | lowercase → sᴍᴀʟʟ ᴄᴀᴘs | `index` → `ɪɴᴅᴇx` (fancy ✨) |
+
+Write your own 📝! The contract is simple:
+
+```lua
+function rewrite(path)
+    -- return a string for the alias, or nil to skip
+    return path:gsub("cat", "кот")  -- 🐱→🐱 but in Russian
+end
+```
+
+The Lua engine runs only during path map builds 🏗️ (startup + file changes). Request handling is still just a hash map lookup 📖. We added a scripting engine and somehow made it zero-cost at runtime 🧙‍♂️.
 
 ## 🧠 How It Works
 
@@ -59,7 +93,7 @@ At startup 🏁, `PathMap` walks the entire web root 🚶 and builds a lowercase
 
 An inotify watcher 👁️ monitors the web root for changes. When files are added 🟩, deleted 🟥, or renamed 🟨, the path map is rebuilt automatically after a 1-second debounce ⏳. We considered making it configurable. Then we didn't 💅.
 
-The whole thing is written in Zig 🦎, compiled to a single static binary. The final Docker image is `FROM scratch` 🫥 — there is literally nothing in it except the binary and your files. You can't even `docker exec` into it 🚫.
+The whole thing is written in Zig 🦎 with an embedded Lua 5.4 engine 🌙, compiled to a single static binary. The final Docker image is `FROM scratch` 🫥 — there is literally nothing in it except the binary, your files, and some Lua scripts. You can't even `docker exec` into it 🚫.
 
 - There's no shell 🐚❌
 - There's no `ls` 📋❌
@@ -92,7 +126,7 @@ Yes ✅. An inotify watcher picks up changes and rebuilds the path map within a 
 
 - No base OS 🚫🖥️
 - No runtime 🚫⚙️
-- No libc 🚫📚
+- musl libc statically linked (Lua needs it, but it's baked in 🍞)
 
 One static Zig binary running on an empty container 📦🫥. There's nothing left to remove. We tried. We removed the entire operating system 💣. It still works ✅.
 </details>
@@ -113,11 +147,14 @@ We don't talk about that here 🤫🙅.
 <summary><b>Is this over-engineered? 🔧🔧🔧</b></summary>
 
 - Zig static binary ⚡
+- With an embedded Lua 5.4 scripting engine 🌙
 - Thread pool with reader-writer locks 🔒
 - Running in an empty container 🫥
 - With an inotify file system watcher 👁️
 - And debounced rebuilds ⏳
 - Serving files through a case-insensitive hash map 🗂️
+- That also indexes Cyrillic homoglyph aliases 🇷🇺
+- Generated by a scripting language inside a systems language inside an empty container 🤯
 
 For a problem you could also solve with a symlink 🔗. You tell us 🫠.
 </details>
@@ -128,4 +165,4 @@ Do whatever you want with it 🤷. It's a hash map and a for loop 🔁.
 
 ---
 
-Made with ❤️ and questionable priorities 🎪
+Made with ❤️, questionable priorities 🎪, and an embedded scripting language 🌙

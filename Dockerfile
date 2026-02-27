@@ -6,6 +6,7 @@ RUN apk add --no-cache zig
 WORKDIR /src
 COPY build.zig build.zig.zon ./
 COPY src/ src/
+COPY deps/ deps/
 
 RUN ZIG_TARGET=$( \
       echo $TARGETARCH | sed \
@@ -20,6 +21,7 @@ FROM scratch
 WORKDIR /app
 COPY --from=build /casedropper .
 COPY wwwroot /app/wwwroot
+COPY scripts/ /app/scripts/
 
 ENV PORT=8080
 ENV WWWROOT=/app/wwwroot
