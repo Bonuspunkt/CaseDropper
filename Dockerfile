@@ -1,7 +1,7 @@
 FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:10.0-alpine AS build
 ARG TARGETARCH
 ARG BUILDARCH
-RUN apk add --no-cache clang lld zlib-dev zlib-static
+RUN apk add --no-cache clang lld llvm zlib-dev zlib-static
 
 # Fetch target-arch sysroot for cross-compilation (no QEMU needed)
 RUN if [ "$TARGETARCH" != "$BUILDARCH" ]; then \
