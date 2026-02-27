@@ -13,7 +13,7 @@ Serves static files. Case-insensitively. That's it. That's the whole thing.
 `/INDEX.HTML`, `/index.html`, `/iNdEx.HtMl` — all the same file. Just like the good old days on Windows Server 2003.
 
 - **~12 MB** image on `scratch`. No OS. No shell. No attack surface. Just vibes.
-- **Multi-arch**: `amd64`, `arm64`, `armv7`. Runs on your server, your Mac, your Raspberry Pi. We don't judge your hardware choices either.
+- **Multi-arch**: `amd64` and `arm64`. Runs on your server, your Mac, your NAS. We don't judge your hardware choices either.
 - **Hot-reload**: Drop files in, the path map rebuilds itself. No restart needed. We solved the hard problem so you can keep deploying by drag-and-drop into a mounted volume.
 - **Native AOT**: Statically linked. Starts in milliseconds. No runtime required. Your container has fewer dependencies than your morning routine.
 
@@ -73,7 +73,7 @@ A: Yes. A file watcher picks up changes and rebuilds the path map within a secon
 A: No base OS. No .NET runtime. No ICU. No libc. One static binary, compiled ahead of time, running on an empty container. There's nothing left to remove. We tried. We removed the entire operating system. It still works.
 
 **Q: What architectures are supported?**
-A: `amd64`, `arm64`, and `armv7`. If you're running this on a Raspberry Pi, we respect the hustle.
+A: `amd64` and `arm64`. 32-bit ARM (`armv7`) is not supported because .NET Native AOT dropped it — take it up with Microsoft, not us.
 
 **Q: Why not just use Windows?**
 A: We don't talk about that here.
