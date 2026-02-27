@@ -9,7 +9,7 @@ RUN if [ "$TARGETARCH" != "$BUILDARCH" ]; then \
       apk add --no-cache --no-scripts --allow-untrusted \
         --root /sysroot --arch $ALPINE_ARCH --initdb \
         --repositories-file /etc/apk/repositories \
-        musl-dev zlib-dev zlib-static; \
+        musl-dev zlib-dev zlib-static gcc; \
     fi
 
 WORKDIR /src
