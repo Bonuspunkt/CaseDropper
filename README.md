@@ -1,0 +1,66 @@
+# CaseDropper
+
+Finally. The **case-insensitive file serving** experience you never asked for, now available on Linux via Docker.
+
+Did you migrate your lovingly crafted static site from IIS to nginx, only to discover that `<img src="Images/Logo.PNG">` returns a 404 because the file is actually `images/logo.png`? Did your predecessor hardcode paths with the confidence of someone who has never heard of a case-sensitive filesystem?
+
+We've got you covered.
+
+## What It Does
+
+Serves static files. Case-insensitively. That's it. That's the whole thing.
+
+`/INDEX.HTML`, `/index.html`, `/iNdEx.HtMl` - all the same file. Just like the good old days on Windows Server 2003.
+
+## Quick Start
+
+A pre-built image is published to GitHub Container Registry. No build step required, just mount your files and go:
+
+```bash
+docker run --rm -p 8080:8080 -v ./my-site:/app/wwwroot ghcr.io/bonuspunkt/casedropper:latest
+```
+
+Or build it yourself, if you have trust issues:
+
+```bash
+docker build -t casedropper .
+docker run --rm -p 8080:8080 casedropper
+```
+
+Your files. Any casing. Port 8080.
+
+## Configuration
+
+All configuration is done via environment variables, because we're running on Linux now and we've moved past clicking through property dialogs.
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `WWWROOT` | `/app/wwwroot` | Where your files live |
+| `PORT` | `8080` | Listening port |
+| `ENABLE_DIRECTORY_BROWSING` | off | Set `true` or `1` to enable. Recreates the nostalgia of browsing `http://localhost/` and seeing every file listed in a table |
+
+## How It Works
+
+At startup, `CaseInsensitiveFileProvider` walks the entire web root and builds a lowercase lookup map of every file and directory. Incoming request paths are lowercased and matched against this map. It's a `Dictionary<string, string>`. Not machine learning. Not AI. A dictionary.
+
+## Protocol Support
+
+- HTTP/1.0, HTTP/1.1: fully supported
+- HTTP/2, HTTP/3: not happening (no TLS)
+
+This is a static file server that pretends your filesystem is case-insensitive. If you need TLS, put it behind a reverse proxy like a normal person.
+
+## FAQ
+
+**Q: Should I use this in production?**
+A: You should probably fix your paths instead. But if you're reading this, you've likely already accepted that's not happening.
+
+**Q: Does it hot-reload when files change?**
+A: No. The path map is built once at startup. Restart the container. It takes about a second. You'll survive.
+
+**Q: Why not just use Windows?**
+A: We don't talk about that here.
+
+## License
+
+Do whatever you want with it. It's a dictionary and a for loop.
