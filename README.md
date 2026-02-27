@@ -19,7 +19,7 @@ Serves static files. Case-insensitively. That's it. That's the whole thing. 🎉
 - 🏗️ **Multi-arch**: `amd64`, `arm64`, `armv7`, `i386`, `riscv64`, `ppc64le`, `s390x`, `mips64le`, `loong64`. Runs on your server 🖥️, your Mac 🍎, your toaster 🍞. We don't judge your hardware choices either.
 - 🔄 **Hot-reload**: Drop files in, the path map rebuilds itself. No restart needed 🚀. We solved the hard problem so you can keep deploying by drag-and-drop into a mounted volume. 📂➡️📂
 - ⚡ **Zig**: Statically linked. Starts in microseconds ⏱️. No runtime required. Your container has fewer dependencies than your morning routine ☕.
-- 🌙 **Lua scripting**: Embedded Lua 5.4 engine 🦎🤝🌙 rewrites URLs at index time. Ships with `rusify.lua` 🇷🇺 (`ABCDEFGHIJKLMNOPQRSTUVWXYZ` → `ДBCDЄFБHЇJКLMИОPQЯ₴TЦVШXЏZ`) and `smallcaps.lua` 🔡 (`index` → `ɪɴᴅᴇx`). Your users will think you've been hacked. You haven't. Probably 🤷.
+- 🌙 **Lua scripting**: Embedded Lua 5.4 engine 🦎🤝🌙 rewrites URLs at index time. Ships with `rusify.lua` 🇷🇺 (`ABCDEFGHIJKLMNOPQRSTUVWXYZ` → `ДBCDЄFБHЇJКLMИОPQЯ₴TЦVЩЖУZ`, plus digraphs `io`→`ю` `bi`→`ы`) and `smallcaps.lua` 🔡 (`index` → `ɪɴᴅᴇx`). Your users will think you've been hacked. You haven't. Probably 🤷.
 
 ## 🚀 Quick Start
 
@@ -62,14 +62,14 @@ docker run --rm -p 8080:8080 \
   ghcr.io/bonuspunkt/casedropper:latest
 
 # /index.html     → 200 ✅
-# /їиdёx.html    → 200 ✅  (every letter mapped to Cyrillic. You can barely tell 👀)
+# /їиdєж.html    → 200 ✅  (every letter mapped to Cyrillic. You can barely tell 👀)
 ```
 
 Ships with two scripts 📜📜:
 
 | Script | What it does | Example |
 |--------|-------------|---------|
-| `rusify.lua` 🇷🇺 | Full Latin → Cyrillic/Ukrainian | `index` → `їиdёx` (25 letters mapped 🫣) |
+| `rusify.lua` 🇷🇺 | Full Latin → Cyrillic/Ukrainian | `index` → `їиdєж` (28 letters + 4 digraphs 🫣) |
 | `smallcaps.lua` 🔡 | lowercase → sᴍᴀʟʟ ᴄᴀᴘs | `index` → `ɪɴᴅᴇx` (fancy ✨) |
 
 <details>
@@ -77,13 +77,15 @@ Ships with two scripts 📜📜:
 
 ```
 ABCDEFGHIJKLMNOPQRSTUVWXYZ
-ДBCDЄFБHЇJКLMИОPQЯ₴TЦVШXЏZ
+ДBCDЄFБHЇJКLMИОPQЯ₴TЦVЩЖУZ
 
 abcdefghijklmnopqrstuvwxyz
-aЬcdёfgнїjкlмиоpqяsтцvшxуz
+aвcdєfgнїjкlмиоpqяšтцvшжуz
 ```
 
-25 of 52 letters get swapped. The rest pass through unchanged. File extensions are preserved 📎.
+Digraphs (matched first): `io`→`ю` · `IO`→`Ю` · `bi`→`ы` · `BI`→`Ы`
+
+28 of 52 letters get swapped, plus 4 digraph combos. File extensions are preserved 📎. Decoded from the [fsymbols.com source](https://fsymbols.com/generators/rusify/) 🔍.
 </details>
 
 Write your own 📝! The contract is simple:

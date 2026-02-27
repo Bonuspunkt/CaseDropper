@@ -22,17 +22,19 @@ LUA_SCRIPT=scripts/smallcaps.lua WWWROOT=wwwroot ./zig-out/bin/casedropper
 
 | Script | Effect | Before → After |
 |--------|--------|----------------|
-| `rusify.lua` 🇷🇺 | Full Latin → Cyrillic/Ukrainian | `index.html` → `їиdёx.html` |
+| `rusify.lua` 🇷🇺 | Full Latin → Cyrillic/Ukrainian | `index.html` → `їиdєж.html` |
 | `smallcaps.lua` 🔡 | lowercase → small capitals | `index.html` → `ɪɴᴅᴇx.html` |
 
-`rusify.lua` maps 25 of 52 Latin letters to Cyrillic/Ukrainian equivalents:
+`rusify.lua` maps 28 of 52 Latin letters to Cyrillic/Ukrainian equivalents, plus 4 digraph combos:
 
 ```
-ABCDEFGHIJKLMNOPQRSTUVWXYZ → ДBCDЄFБHЇJКLMИОPQЯ₴TЦVШXЏZ
-abcdefghijklmnopqrstuvwxyz → aЬcdёfgнїjкlмиоpqяsтцvшxуz
+ABCDEFGHIJKLMNOPQRSTUVWXYZ → ДBCDЄFБHЇJКLMИОPQЯ₴TЦVЩЖУZ
+abcdefghijklmnopqrstuvwxyz → aвcdєfgнїjкlмиоpqяšтцvшжуz
+
+Digraphs: io→ю  IO→Ю  bi→ы  BI→Ы
 ```
 
-Some look identical (`o` → `о`), some are wildly different (`A` → `Д`). All of them will confuse your users 🫠.
+Decoded from the [fsymbols.com source](https://fsymbols.com/generators/rusify/). Some look identical (`o` → `о`), some are wildly different (`A` → `Д`), and digraphs collapse two chars into one (`biography` → `ыоgяapну`). All of them will confuse your users 🫠.
 
 ### 🔧 Write Your Own
 
@@ -67,7 +69,7 @@ Drop it in `scripts/`, set `LUA_SCRIPT`, restart. The path map rebuilds with you
 
 - feat: embed Lua 5.4.7 scripting engine for URL rewriting
 - feat: add `LUA_SCRIPT` environment variable
-- feat: add `rusify.lua` script (full Latin → Cyrillic/Ukrainian, 25 letter mappings)
+- feat: add `rusify.lua` script (full Latin → Cyrillic/Ukrainian, 28 letters + 4 digraphs, decoded from fsymbols.com source)
 - feat: add `smallcaps.lua` script (lowercase → Unicode small capitals)
 - feat: add URL percent-decoding in PathMap for Unicode URL support
 - build: link musl libc (required by Lua)
