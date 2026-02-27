@@ -6,8 +6,9 @@ RUN apk add --no-cache clang lld zlib-dev zlib-static
 # Fetch target-arch sysroot for cross-compilation (no QEMU needed)
 RUN if [ "$TARGETARCH" != "$BUILDARCH" ]; then \
       ALPINE_ARCH=$(echo $TARGETARCH | sed 's/amd64/x86_64/;s/arm64/aarch64/') && \
-      apk add --no-cache --no-scripts --root /sysroot --arch $ALPINE_ARCH --initdb \
-        --repositories-file /etc/apk/repositories --keys-dir /etc/apk/keys \
+      apk add --no-cache --no-scripts --allow-untrusted \
+        --root /sysroot --arch $ALPINE_ARCH --initdb \
+        --repositories-file /etc/apk/repositories \
         musl-dev zlib-dev zlib-static; \
     fi
 
