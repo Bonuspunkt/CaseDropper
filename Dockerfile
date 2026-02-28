@@ -8,17 +8,17 @@ COPY build.zig build.zig.zon ./
 COPY src/ src/
 COPY deps/ deps/
 
-RUN ZIG_ARCH=$( \
-      echo $TARGETARCH | sed \
-        's/amd64/x86_64/; s/arm64/aarch64/; s/arm$/arm/; \
-         s/386/x86/; s/ppc64le/powerpc64le/; s/mips64le/mips64el/; \
-         s/loong64/loongarch64/' \
-    ) && \
-    if [ "$ZIG_ARCH" = "arm" ]; then \
-      ZIG_TARGET="arm-linux-musleabihf"; \
-    else \
-      ZIG_TARGET="${ZIG_ARCH}-linux-musl"; \
-    fi && \
+RUN case $TARGETARCH in \
+      amd64)    ZIG_TARGET="x86_64-linux-musl" ;; \
+      arm64)    ZIG_TARGET="aarch64-linux-musl" ;; \
+      arm)      ZIG_TARGET="arm-linux-musleabihf" ;; \
+      386)      ZIG_TARGET="x86-linux-musl" ;; \
+      riscv64)  ZIG_TARGET="riscv64-linux-musl" ;; \
+      ppc64le)  ZIG_TARGET="powerpc64le-linux-musl" ;; \
+      s390x)    ZIG_TARGET="s390x-linux-musl" ;; \
+      mips64le) ZIG_TARGET="mips64el-linux-muslabi64" ;; \
+      loong64)  ZIG_TARGET="loongarch64-linux-musl" ;; \
+    esac && \
     zig build -Doptimize=ReleaseSafe -Dtarget=$ZIG_TARGET && \
     cp zig-out/bin/casedropper /casedropper
 
